@@ -1,0 +1,79 @@
+https://chatgpt.com/share/e/68c62b82-66a0-8004-93c1-c45e569a83b1
+
+
+notepad test_tv_async.py
+Replace everything with this:
+
+python
+Copy code
+import asyncio, sys, json
+from pathlib import Path
+from aiowebostv import WebOsClient
+
+TV_IP = "192.168.100.84"
+KEY_FILE = Path("client_key.json")
+
+async def get_client():
+    client_key = None
+    if KEY_FILE.exists():
+        try:
+            client_key = json.loads(KEY_FILE.read_text()).get("client_key")
+        except Exception:
+            pass
+
+    client = WebOsClient(TV_IP, client_key)
+    await client.connect()
+
+    # Save new key if pairing just happened
+    if client.client_key and client.client_key != client_key:
+        KEY_FILE.write_text(json.dumps({"client_key": client.client_key}))
+
+    return client
+
+async def main():
+    if len(sys.argv) < 2:
+        print("Usage: python test_tv_async.py <volume_up|volume_down|channel_up|channel_down|power_off|mute_toggle>")
+        return
+
+    cmd = sys.argv[1].lower()
+    client = await get_client()
+
+    try:
+        if cmd == "volume_up":
+            await client.button("VOLUMEUP")
+        elif cmd == "volume_down":
+            await client.button("VOLUMEDOWN")
+        elif cmd == "channel_up":
+            await client.button("CHANNELUP")
+        elif cmd == "channel_down":
+            await client.button("CHANNELDOWN")
+        elif cmd == "mute_toggle":
+            await client.button("MUTE")
+        elif cmd == "power_off":
+            # Power off is still an SSAP call and should work universally
+            await client.request("ssap://system/turnOff")
+        else:
+            print("Unknown command")
+            return
+        print("Done:", cmd)
+    finally:
+        await client.disconnect()
+
+if __name__ == "__main__":
+    asyncio.run(main())
+Run it
+bat
+Copy code
+python test_tv_async.py volume_up
+First run: accept the pairing popup on the TV.
+
+A client_key.json will be saved next to the script.
+
+Try a few:
+
+bat
+Copy code
+python test_tv_async.py volume_down
+python test_tv_async.py channel_up
+python test_tv_async.py mute_toggle
+python test_tv_async.py power_off
