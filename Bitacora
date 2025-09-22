@@ -1,5 +1,14 @@
 https://chatgpt.com/share/e/68c62b82-66a0-8004-93c1-c45e569a83b1
 
+1) Create a 3.9 conda env
+
+
+conda create -n lgcontrol311 python=3.11 -y
+conda activate lgcontrol311
+
+pip install aiowebostv python-dotenv wakeonlan
+
+2) Create and un .py
 
 notepad test_tv_async.py
 Replace everything with this:
